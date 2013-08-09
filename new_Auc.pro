@@ -15,4 +15,5 @@ win32:TARGET = ../Auc_4_8_0
 OTHER_FILES += \
     ../../auc_last/HTMLsourse.html \
     ../../auc_last/htmlsourse2.txt \
-    ../../auc_bin_release_4.8.0/temp.html
+    ../../auc_bin_release_4.8.0/temp.html \
+    temp.txt

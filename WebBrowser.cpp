@@ -29,7 +29,7 @@ WebBrowser::WebBrowser(QWidget* wgt/*=0*/) :    QWidget(wgt)
 	lotsNames			= new QList<QLabel*>;
 	lotsCaps				= new QList<QLineEdit*>;
 	removeLots			= new QList<QPushButton*>;
-	postRequestsText	= new QList<QLabel*>;
+    postRequestsText	= new QList<QLabel*>;
 
 	m_pcmdRequest		= new QPushButton("Единичный\nзапрос");
 	m_pcmdRequest->setObjectName("request button");
@@ -56,7 +56,7 @@ WebBrowser::WebBrowser(QWidget* wgt/*=0*/) :    QWidget(wgt)
 
 
 	//m_ptxt			= new QLineEdit("http://auction.uniconf.ru/Zones/MainZone/Tenders/ViewTender.aspx?TenderId=22073");
-	m_ptxt			= new QLineEdit("http://auction.uniconf.ru/Zones/MainZone/Default.aspx");
+    m_ptxt			= new QLineEdit("http://ea.uniconf.ru/Anonym/Login.aspx");
 
 	logString = QString("*********** %1 **********<br>").arg(QDate::currentDate().toString("dd.MM.yyyy"));
 	logView = new QTextEdit();
@@ -65,7 +65,7 @@ WebBrowser::WebBrowser(QWidget* wgt/*=0*/) :    QWidget(wgt)
 	m_pwv->page()->setNetworkAccessManager(networkManager);
 	m_pcmdStart->setCheckable(true);
 
-	connect(networkManager, SIGNAL(sendingPostRequest(QString,int,QNetworkRequest)),
+    connect(networkManager, SIGNAL(sendingPostRequest(QString,int,QNetworkRequest)),
 			  this, SLOT(postRequestRecived(QString,int,QNetworkRequest)));
 	connect(m_pwv->page()->networkAccessManager(), SIGNAL(finished(QNetworkReply*)),
 			  this, SLOT(replyFinished(QNetworkReply*)));
@@ -119,7 +119,7 @@ WebBrowser::WebBrowser(QWidget* wgt/*=0*/) :    QWidget(wgt)
     connect(betMinEdit,SIGNAL(textChanged(QString)),this,SLOT(setBetStep(QString)));
 	connect(m_pcmdStart,SIGNAL(clicked()),SLOT(sendRequest()));
 	connect(buttonQuit,SIGNAL(clicked()),qApp,SLOT(quit()));
-	connect(addLot,SIGNAL(clicked()),this,SLOT(addingLot()));
+    connect(addLot,SIGNAL(clicked()),this,SLOT(addingLot()));
 	connect(lotName,SIGNAL(returnPressed()),this,SLOT(addingLot()));
 	connect(m_pcmdRequest,SIGNAL(clicked()),this, SLOT(sendRequest()));
 	connect(m_ptxt, SIGNAL(returnPressed()), SLOT(slotGo()));
@@ -377,21 +377,19 @@ void WebBrowser::addingLot()
 			return;
 		}
 	}
-	QWebElement tTable = m_pwv->page()->mainFrame()->findFirstElement("table[id=myTable]");
-	QWebElement tBody = tTable.findFirst("tbody");
+    QWebElement tTable = m_pwv->page()->mainFrame()->findFirstElement("table[id=MainContent_gvBidsForStake]");
+//    QWebElement tTable = m_pwv->page()->mainFrame()->findFirstElement("table[id=MainContent_tcTender_tpBids_gvBids]");
+    QWebElement tBody = tTable.findFirst("tbody");
 	QWebElement trElement = tBody.firstChild(),temp;
 	bool flag = true, exist=false;
 	while( flag && trElement.tagName()=="TR") {
-		//qDebug() << trElement.toPlainText() << endl;
-		QWebElementCollection ahrefs = trElement.findAll("a");
-		//qDebug() << ahrefs.count()<< endl;
-		foreach(QWebElement ahref, ahrefs) {
-			//qDebug() << ahref.toPlainText() << lotName->text() << endl;
-			if (ahref.toPlainText().startsWith(lotName->text()+ch)){
+//        qDebug() << trElement.toPlainText() << endl;
+        QWebElement span = trElement.findFirst("span");
+        qDebug() << span.toPlainText() << endl;
+        if (span.toPlainText().startsWith(lotName->text())){
 				exist=true;
-			}//if (ahref.toPlainText().startsWith(lotName->text()))
-		} //foreach(QWebElement ahref, ahrefs)
-		if (temp==tBody.lastChild()) {
+        }//if (span.toPlainText().startsWith(lotName->text()))
+        if (temp==tBody.lastChild()) {
 			flag=false;
 		}
 		temp=trElement;
@@ -585,8 +583,8 @@ void WebBrowser::sendingValues(const int numTr, const int bet)
 
 	foreach (QLabel *lbl,*postRequestsText){
 		if (lbl->objectName().toInt() == numTr) {
-			QString data = lbl->text();
-			data.replace(QRegExp("txtPurchasePrice=[^&]+"),QString("txtPurchasePrice=%1").arg(newBet));
+			QString data = lbl->text();	
+            data.replace(QRegExp("24curvalNewStake%24tb=[^&]+"),QString("24curvalNewStake%24tb=%1").arg(newBet));
 			//if (m_pcmdStart->isChecked()){
                             QNetworkReply *replyFromServer = nwManagerSend->post(postRequest,data.toUtf8());
                             replyFromServer->setObjectName("WebBrowser::sendingValues");

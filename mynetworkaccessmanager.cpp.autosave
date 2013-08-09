@@ -25,7 +25,7 @@ QNetworkReply* MyNetworkAccessManager::createRequest(Operation op, const QNetwor
 
             qDebug() << "Отправлен пост запрос с подтверждением ставки tr # " <<numTrStr.toInt()-1;
 			qDebug() <<"numTrStr = " << numTrStr;
-            emit sendingPostRequest(postString,numTrStr.toInt()-1,newRequest);
+            emit sendingPostRequest(postString,numTrStr.toInt(),newRequest);
 //            QString data=temp;
 //            if (this->objectName() != "sender" && data.replace(QRegExp("^.+txtPurchasePrice=([^&]+).*&"),"\\1").toInt()>300000) {
 //                qDebug() << "bet from WebView and bet > 300000 ";
