@@ -15,7 +15,6 @@ QNetworkReply* MyNetworkAccessManager::createRequest(Operation op, const QNetwor
 	} else if (outgoingData){
 		QByteArray temp = outgoingData->readAll();
 		const QString postString = QString(temp);
-        qDebug() << temp;
         if (postString.contains("NewStake=%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C+%D1%81%D1%82%D0%B0%D0%B2%D0%BA%D1%83")) {
             qDebug() << temp;
 			QNetworkRequest newRequest = request;
@@ -23,9 +22,9 @@ QNetworkReply* MyNetworkAccessManager::createRequest(Operation op, const QNetwor
 //			numTrStr.replace(QRegExp("^.+repBidsForTenderInfo%24ctl([^%]+)%24MakePurchase1%24btnMakePurchase=%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C\\+%D0%A1%D1%82%D0%B0%D0%B2%D0%BA%D1%83.*$"),"\\1");
             numTrStr.replace(QRegExp("^.+24MainContent%24gvBidsForStake%24ctl([^%]+)%24bNewStake=%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C\\+%D1%81%D1%82%D0%B0%D0%B2%D0%BA%D1%83.*$"),"\\1");
 
-            qDebug() << "Отправлен пост запрос с подтверждением ставки tr # " <<numTrStr.toInt()-1;
+            qDebug() << "Отправлен пост запрос с подтверждением ставки tr # " <<numTrStr.toInt();
 			qDebug() <<"numTrStr = " << numTrStr;
-            emit sendingPostRequest(postString,numTrStr.toInt()-1,newRequest);
+            emit sendingPostRequest(postString,numTrStr.toInt(),newRequest);
 //            QString data=temp;
 //            if (this->objectName() != "sender" && data.replace(QRegExp("^.+txtPurchasePrice=([^&]+).*&"),"\\1").toInt()>300000) {
 //                qDebug() << "bet from WebView and bet > 300000 ";

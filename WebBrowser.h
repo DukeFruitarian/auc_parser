@@ -97,7 +97,7 @@ private:
     uint                        betStepMin,betStepMax;
 //	QNetworkReply				*replyFromServer;
 
-	inline void parsingTable(const QWebElement& table,bool finish);
+    inline void parsingTable(const QWebElement& table);
 	inline void saveLog();
 	inline void	sendingValues(int tr, int bet);
     inline int  getBetStep();

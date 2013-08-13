@@ -302,7 +302,7 @@ void WebBrowser::sendRequest()
 	//webEl.evaluateJavaScript("this.click();");
 	//	QWebElement tTable = m_pwv->page()->mainFrame()->findFirstElement("table[id=myTable]");
 	//	QWebElement tBody = tTable.findFirst("tbody");
-	//	parsingTable(tBody); //ОСНОВА
+    //	parsingTable(tBody); //ОСНОВА
 	//	QWebElement testEl = m_pwv->page()->mainFrame()->findFirstElement("input[name=user]");
 	//	testEl.setAttribute("value","hzhzhz");
 	//	testEl = m_pwv->page()->mainFrame()->findFirstElement("input[value=Войти]");
@@ -446,89 +446,52 @@ void WebBrowser::removingLot()
 
 //-------------------------------------------------------------------------------------
 
-void WebBrowser::parsingTable(const QWebElement &tBody, bool finished)
+void WebBrowser::parsingTable(const QWebElement &tBody)
 {
 	QTime qt;
 	qt.start();
 	bool aucFinished=false;
-	int numTr = 1;
-	QWebElement trElement = tBody.firstChild();
-	while(trElement.tagName()=="TR") {								// Пока тег <tr>
+    int numTr = 1;
+    QWebElement trElement = tBody.firstChild();
+    while(trElement.tagName()=="TR") {								// Пока тег <tr>
 
-		//qDebug() << trElement.toPlainText() << endl;
-		QWebElementCollection ahrefs = trElement.findAll("a");
-		//qDebug() << ahrefs.count()<< endl;
-		foreach(QWebElement ahref, ahrefs) {						// Для каждого тега <a>
-			//qDebug() << ahref.toPlainText() << lotName->text() << endl;
+//        qDebug() << trElement.toPlainText() << endl;
+        QWebElement span = trElement.findFirst("span");
+        //qDebug() << span.toPlainText() << lotName->text() << endl;
 			for (int numLot=0;numLot<lotsNames->count();++numLot){ // Для каждого лота в контейнере лотов для мониторинга
-				if (ahref.toPlainText().startsWith(lotsNames->at(numLot)->text()+ch)){ // Если имя лота совпадает с именем лота для мониторинга
-					QWebElement divElement = trElement.findFirst("div");
-					if (!finished) {					// Если не закончены торги
-						//qDebug() << "У кнопки атрибут он_клик = " << betSubmit.attribute("onclick");
-						if (!divElement.parent().attribute("style").contains("background-color: #66FF66")) { // Если цвет не зелёный(ставка не наша)
-                            int newBet = ((divElement.toPlainText().toInt() - getBetStep())/100)*100;
-							if ((lotsCaps->at(numLot))->text().toInt()<=newBet) { //
-								//QWebElement betField = trElement.findFirst("input");
-								//betField.setAttribute("value",QString().setNum(newBet));
-								//betSubmit.evaluateJavaScript("this.click();");
-								logString+=QString("%1 сделана ставка <i>%2</i> на лот <b>%3</b><br>")
-											  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
-											  .arg(newBet)
-											  .arg(lotsNames->at(numLot)->text());
-								logView->setHtml(logString);
-								sendingValues(numTr,newBet);
+                if (span.toPlainText().startsWith(lotsNames->at(numLot)->text())){ // Если имя лота совпадает с именем лота для мониторинга
+                    QWebElement spanElement = trElement.findFirst(QString("span#MainContent_gvBidsForStake_gvPlaces_%1_ctl01_0_l_0").arg(numTr-2));
+//                    qDebug() << "spanElement.toPlainText() = " << spanElement.toPlainText().remove(-4,1).toInt();
+                        if (!spanElement.parent().parent().parent().parent().attribute("class").contains("place1")) { // Если цвет не зелёный(ставка не наша)
+                          int newBet = ((spanElement.toPlainText().remove(-4,1).toInt() - getBetStep())/100)*100;
+                            if ((lotsCaps->at(numLot))->text().toInt()<=newBet) { //
+                                //QWebElement betField = trElement.findFirst("input");
+                                //betField.setAttribute("value",QString().setNum(newBet));
+                                //betSubmit.evaluateJavaScript("this.click();");
+                                logString+=QString("%1 сделана ставка <i>%2</i> на лот <b>%3</b><br>")
+                                              .arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
+                                              .arg(newBet)
+                                              .arg(lotsNames->at(numLot)->text());
+                                logView->setHtml(logString);
+                                sendingValues(numTr,newBet);
                                 return; // выход из функции. Ожидание приёма нового ответа с сервера
-                                qDebug() << "Вышли из функции но пошли дальше ????";
-							} else {
-								if (!logString.contains(QString("ставка <i>%1</i> на лот <b>%2</b> ниже предельной цены <br>")
-									.arg(newBet)
-									.arg(lotsNames->at(numLot)->text()))){
-									logString+=QString("%1 ставка <i>%2</i> на лот <b>%3</b> ниже предельной цены <br>")
-												  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
-												  .arg(newBet)
-												  .arg(lotsNames->at(numLot)->text());
-									logView->setHtml(logString);
-								}
-							}
-						} else {
-							qDebug() << QString("На лот %1 наша ставка равна %2").arg(lotsNames->at(numLot)->text()).arg(divElement.toPlainText());
-						}
-					} else { // Если торги закончены
-//						timerEsc->stop();
-						foreach (QLabel* lbl, *postRequestsText) {
-							lbl->deleteLater();
-						}
-						postRequestsText->clear();
-						if (!aucFinished) {//Если первое упоминание о завершенных торгов(для добавления строки в лог)
-							aucFinished=true;
-							logString+=QString("<br>%1 <b>аукцион закончен</b><br>")
-										  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"));
-						}
-						if (!divElement.parent().attribute("style").contains("background-color: #66FF66")) {//Если цвет не зелёный(ставка не наша)
-							logString+=QString("%1 лот <b>%2</b> был прекуплен<br>")
-										  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
-										  .arg(lotsNames->at(numLot)->text());
-							logView->setHtml(logString);
-						} else {
-							logString+=QString("%1 лот <b>%2</b> был куплен за <i>%3</i> <br>")
-										  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
-										  .arg(lotsNames->at(numLot)->text())
-										  .arg(divElement.toPlainText().toInt());
-							logView->setHtml(logString);
-						}
-					}
-				}//if (ahref.toPlainText().startsWith(lotName->text()))
+                            } else {
+                                if (!logString.contains(QString("ставка <i>%1</i> на лот <b>%2</b> ниже предельной цены <br>")
+                                    .arg(newBet)
+                                    .arg(lotsNames->at(numLot)->text()))){
+                                    logString+=QString("%1 ставка <i>%2</i> на лот <b>%3</b> ниже предельной цены <br>")
+                                                  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"))
+                                                  .arg(newBet)
+                                                  .arg(lotsNames->at(numLot)->text());
+                                    logView->setHtml(logString);
+                                }
+                            }
+                        } else {
+                            qDebug() << QString("На лот %1 наша ставка равна %2").arg(lotsNames->at(numLot)->text()).arg(spanElement.toPlainText().remove(-4,1).toInt());
+                        }
+                }//if (ahref.toPlainText().startsWith(lotName->text()))
 
 			}//for (int numLot=0;numLot<lotsNames->count();++numLot){
-		} //foreach(QWebElement ahref, ahrefs)
-		if (trElement==tBody.lastChild() && aucFinished) {
-			logString+="<hr>";
-			logView->setHtml(logString);
-			saveLog();
-			m_pcmdStart->setChecked(false);
-            m_pwv->settings()->setAttribute(QWebSettings::JavascriptEnabled, true);
-			return;
-		}
 		trElement=trElement.nextSibling();
 		numTr++;
 	}
@@ -574,7 +537,7 @@ void WebBrowser::saveLog()
 
 void WebBrowser::sendingValues(const int numTr, const int bet)
 {
-	int newBet=bet;
+    int newBet=bet;
 //    newBet = (newBet/100)*100;
 //    newBet=22900;
 
@@ -719,19 +682,26 @@ void WebBrowser::recivedReplyForParsing()
 			QTime qt;
 			qt.start();
 			sendOnes=false;
-			bool finish=false;
-			QWebElement tTable = wp->mainFrame()->findFirstElement("table[id=myTable]");
-			QWebElementCollection ElColl= wp->mainFrame()->findAllElements("td");
-			//qDebug() <<ElColl.count();
-			foreach (QWebElement wbel,ElColl){
-				if (wbel.toPlainText() == "Закрыты"){
-                    finish=true;
-					break;
-				}
-			}
+
+            QString str = wp->mainFrame()->findFirstElement("div#MainContent_errorArea").toPlainText();
+            if (str == QString("Аукцион уже закончился")) {
+                logString+="<hr>";
+                logString+=QString("<br>%1 <b>аукцион закончен</b><br>")
+                  .arg(QTime::currentTime().toString("hh:mm:ss.zzz"));
+
+                logView->setHtml(logString);
+                saveLog();
+                m_pcmdStart->setChecked(false);
+                m_pwv->settings()->setAttribute(QWebSettings::JavascriptEnabled, true);
+                return;
+            } else {
+                QWebElement tBody = wp->mainFrame()->findFirstElement("table[id=MainContent_gvBidsForStake]").findFirst("tbody");
+
+                parsingTable(tBody);         //ОСНОВА
+            }
 			qDebug() << "ms in find CLOSE:" << qt.elapsed();
-			QWebElement tBody = tTable.findFirst("tbody");
-			parsingTable(tBody,finish);											//ОСНОВА
+
+
 			qDebug() << "elapsed in foreach:" << qt.elapsed();
 		}
 		reply->deleteLater();
