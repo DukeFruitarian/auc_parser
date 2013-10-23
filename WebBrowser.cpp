@@ -450,7 +450,6 @@ void WebBrowser::parsingTable(const QWebElement &tBody)
 {
 	QTime qt;
 	qt.start();
-	bool aucFinished=false;
     int numTr = 1;
     QWebElement trElement = tBody.firstChild();
     while(trElement.tagName()=="TR") {								// Пока тег <tr>
@@ -538,7 +537,7 @@ void WebBrowser::saveLog()
 void WebBrowser::sendingValues(const int numTr, const int bet)
 {
     int newBet=bet;
-//    newBet = (newBet/100)*100;
+    newBet = (newBet/100)*100;
 //    newBet=22900;
 
 	QTime qt;
