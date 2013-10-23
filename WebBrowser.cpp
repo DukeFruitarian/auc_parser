@@ -103,7 +103,7 @@ WebBrowser::WebBrowser(QWidget* wgt/*=0*/) :    QWidget(wgt)
     // задание минимальной ставки
     QLabel*       betMinLbl      = new QLabel("Минимальный шаг ставки:");
     QLineEdit*    betMinEdit     = new QLineEdit;
-    QValidator*   validator   = new QIntValidator(100, 1000, this);
+    QValidator*   validator   = new QIntValidator(100, 2000, this);
     betMinEdit->setValidator(validator);
     betMinEdit->setText(QString().setNum(betStepMin));
     betMinEdit->setObjectName("stepMin");
